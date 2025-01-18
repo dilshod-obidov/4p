@@ -1,5 +1,6 @@
 import cv2
 from ultralytics import YOLO
+import matplotlib.pyplot as plt
 
 """
     0: Nose 
@@ -20,11 +21,15 @@ def main():
 
     print("Press 'q' to exit the program.")
 
+    frame_index = 0
+
     while True:
         ret, frame = cap.read()
         if not ret:
             print("Error: Failed to capture frame from the camera.")
             break
+
+        frame_index += 1
 
         results = pose_model(frame, max_det=1)
 
@@ -37,12 +42,19 @@ def main():
             left_eye = results[0].keypoints.data[0][1]
             right_eye = results[0].keypoints.data[0][2]
             distance = ((left_eye[0] - right_eye[0])**2 + (left_eye[1] - right_eye[1])**2)**0.5
+            ratio = person_width/distance
 
             print(f'Left eye: {left_eye}')
             print(f'Right eye: {right_eye}')
             print(f'Distance between eyes: {distance}')
 
-            print(f'Ratio: {person_width/distance}')
+            print(f'Ratio: {ratio}')
+
+            # save the frame_index and the ratio to a csv file
+            with open('person_width_2_distance.csv', 'a') as f:
+                f.write(f'{frame_index},{ratio:.3f}\n')
+
+            visualize_ratio(frame_index, ratio)
 
             nose = results[0].keypoints.data[0][0]
             print(f'Nose: {nose}')
@@ -70,6 +82,19 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+def visualize_ratio(frame_index, ratio):
+    # visualize the ratio realtime as graph
+    plt.plot(frame_index, ratio, 'ro-')
+    plt.xlabel('Frame Index')
+    plt.ylabel('Ratio')
+    plt.title('Person Width to Distance Ratio')
+    plt.grid()
+    plt.pause(0.1)
+
+
+
 
 if __name__ == "__main__":
     main()
