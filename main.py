@@ -54,8 +54,6 @@ def main():
             with open('person_width_2_distance.csv', 'a') as f:
                 f.write(f'{frame_index},{ratio:.3f}\n')
 
-            visualize_ratio(frame_index, ratio)
-
             nose = results[0].keypoints.data[0][0]
             print(f'Nose: {nose}')
             left_shoulder = results[0].keypoints.data[0][5]
@@ -71,6 +69,8 @@ def main():
             nose_shoulder_distance = abs(nose[1] - shoulders_mid_point[1])
             print(f'Distance between nose and shoulders: {nose_shoulder_distance}')
 
+            visualize_ratios(frame_index, ratio, nose_shoulder_distance)
+
             cv2.imshow("Pose Estimation", annotated_frame)
 
         else:
@@ -84,16 +84,33 @@ def main():
     cv2.destroyAllWindows()
 
 
-def visualize_ratio(frame_index, ratio):
-    # visualize the ratio realtime as graph
-    plt.plot(frame_index, ratio, 'ro-')
-    plt.xlabel('Frame Index')
+import matplotlib.pyplot as plt
+
+def visualize_ratios(frame_index, ratio, nose_shoulder_distance):
+    # Create a figure and subplots
+    if frame_index == 1:
+        plt.figure(figsize=(10, 6))
+    
+    # Subplot 1: Person Width to Distance Ratio
+    plt.subplot(2, 1, 1)  # 2 rows, 1 column, 1st subplot
+    plt.plot(frame_index, ratio, 'ro-', label='Ratio')
     plt.ylabel('Ratio')
     plt.title('Person Width to Distance Ratio')
     plt.grid()
+
+    # Subplot 2: Distance between Nose and Shoulders
+    plt.subplot(2, 1, 2)  # 2 rows, 1 column, 2nd subplot
+    plt.plot(frame_index, nose_shoulder_distance, 'bo-', label='Nose-Shoulder Distance')
+    plt.xlabel('Frame Index')
+    plt.ylabel('Distance')
+    plt.title('Distance between Nose and Shoulders')
+    plt.grid()
+
+    # Adjust layout for better spacing
+    plt.tight_layout()
+
+    # Display the plots
     plt.pause(0.1)
-
-
 
 
 if __name__ == "__main__":
